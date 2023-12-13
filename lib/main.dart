@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
         title: 'Namer App',
         theme: ThemeData(
           useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
         ),
         home: MyHomePage(),
       ),
@@ -27,10 +27,26 @@ class MyApp extends StatelessWidget {
 
 //State can be created and provided to the whole app using a ChangeNotifierProvider
 class MyAppState extends ChangeNotifier {
+  // Create current wordpair and shuffle functionality
   var current = WordPair.random();
 
   void getNext() {
     current = WordPair.random();
+    notifyListeners();
+  }
+
+  // Create functionality for favorite button
+  // Create an empty list that only can contain WordPair
+  var favorites = <WordPair>[];
+
+  // A new method, which either removes the current word pair from the list of favorites (if it's already there), or adds it (if it isn't there yet).
+  void toggleFavorite() {
+    if (favorites.contains(current)) {
+      favorites.remove(current);
+    } else {
+      favorites.add(current);
+    }
+
     notifyListeners();
   }
 }
@@ -42,6 +58,13 @@ class MyHomePage extends StatelessWidget {
     var appState = context.watch<MyAppState>();
     var pair = appState.current;
 
+    IconData icon;
+    if (appState.favorites.contains(pair)) {
+      icon = Icons.favorite;
+    } else {
+      icon = Icons.favorite_border;
+    }
+
     return Scaffold(
       body: Center(
         child: Column(
@@ -51,11 +74,22 @@ class MyHomePage extends StatelessWidget {
             SizedBox(
               height: 10,
             ),
-            ElevatedButton(
-                onPressed: () {
-                  appState.getNext();
-                },
-                child: Text('Next')),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ElevatedButton.icon(
+                    onPressed: () {
+                      appState.toggleFavorite();
+                    },
+                    icon: Icon(icon),
+                    label: Text('Like')),
+                ElevatedButton(
+                    onPressed: () {
+                      appState.getNext();
+                    },
+                    child: Text('Next')),
+              ],
+            ),
           ],
         ),
       ),
